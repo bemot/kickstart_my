@@ -1,6 +1,8 @@
 //imho all test file is better to keep in one directory, as test directory
-//
+//for testing we need assert module (definitely)
 const assert = require('assert');
+//Ganache CLI, part of the Truffle suite of Ethereum development tools, 
+//is the command line version of Ganache, your personal blockchain for Ethereum development. 
 const ganache = require('ganache-cli');
 //remember that Web3 is class we need to create instance of the class
 const Web3 = require('web3');
@@ -23,15 +25,22 @@ beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
     //here we are deploying our contract
     //we need parser to convert json to object for deploy function
+    //web3.eth.Contract creates idea of the contract, we need
+    //to deploy it and actually send to the ethereum network
     factory = await new web3.eth.Contract(JSON.parse(compiledFactory.interface))
     .deploy({ data: compiledFactory.bytecode })
     .send({ from: accounts[0], gas: '1000000' });
     //we are passing minimum contribution which will be need to join the campaign (100 wais)
-  await factory.methods.createCampaign('100').send({
+    //We created a factory, now inside of factory we will create a campaign. 
+    await factory.methods.createCampaign('100').send({
     from: accounts[0],
     gas: '1000000'
   });
 
+    // we are receiving an array of addresses with deployed contracts  
+    // ES2016 we may use fancy feature [campaignAddress] it will say to
+    // factory.methods.getDeployedCampaigns() to return first member of the array
+    // of addresses of the deployed contracts
   [campaignAddress] = await factory.methods.getDeployedCampaigns().call();
   campaign = await new web3.eth.Contract(
     JSON.parse(compiledCampaign.interface),
