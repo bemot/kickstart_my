@@ -1,23 +1,32 @@
+//imho all test file is better to keep in one directory, as test directory
+//
 const assert = require('assert');
 const ganache = require('ganache-cli');
+//remember that Web3 is class we need to create instance of the class
 const Web3 = require('web3');
+// creating instance of the class Web3
 const web3 = new Web3(ganache.provider());
 
 const compiledFactory = require('../ethereum/build/CampaignFactory.json');
 const compiledCampaign = require('../ethereum/build/Campaign.json');
 
+// accounts which exist on the network
 let accounts;
+//deployed instance of the factory
 let factory;
+//campaign address on the network
 let campaignAddress;
-let campaign;
-
+// just campaign on the network
+let campaign; //creating instance of the campaign
+// we have to be sure to mark it as async
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
-
-  factory = await new web3.eth.Contract(JSON.parse(compiledFactory.interface))
+    //here we are deploying our contract
+    //we need parser to convert json to object for deploy function
+    factory = await new web3.eth.Contract(JSON.parse(compiledFactory.interface))
     .deploy({ data: compiledFactory.bytecode })
     .send({ from: accounts[0], gas: '1000000' });
-
+    //we are passing minimum contribution which will be need to join the campaign (100 wais)
   await factory.methods.createCampaign('100').send({
     from: accounts[0],
     gas: '1000000'
