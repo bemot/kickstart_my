@@ -47,18 +47,21 @@ beforeEach(async () => {
     campaignAddress
   );
 });
-
+//02092019
+//our first test that Campaign is successfully deployed
+//
 describe('Campaigns', () => {
   it('deploys a factory and a campaign', () => {
     assert.ok(factory.options.address);
     assert.ok(campaign.options.address);
   });
-
+    // test if the campaign manager seats on the account[0]
   it('marks caller as the campaign manager', async () => {
     const manager = await campaign.methods.manager().call();
     assert.equal(accounts[0], manager);
   });
-
+    // test if a contributor after contribution became an approver
+    // for that we are using account[1]
   it('allows people to contribute money and marks them as approvers', async () => {
     await campaign.methods.contribute().send({
       value: '200',
@@ -67,7 +70,7 @@ describe('Campaigns', () => {
     const isContributor = await campaign.methods.approvers(accounts[1]).call();
     assert(isContributor);
   });
-
+    //minimum contribution is 100 wei, we are trying send 5, should be an error
   it('requires a minimum contribution', async () => {
     try {
       await campaign.methods.contribute().send({
@@ -79,7 +82,7 @@ describe('Campaigns', () => {
       assert(err);
     }
   });
-
+    // test money request from a manager 
   it('allows a manager to make a payment request', async () => {
     await campaign.methods
       .createRequest('Buy batteries', '100', accounts[1])
@@ -91,31 +94,35 @@ describe('Campaigns', () => {
 
     assert.equal('Buy batteries', request.description);
   });
-
+    // we are contributing from account[0] to the campaign 10 ethers
+    // for test resons it is better to send a bigger sum of money
   it('processes requests', async () => {
     await campaign.methods.contribute().send({
       from: accounts[0],
       value: web3.utils.toWei('10', 'ether')
     });
-
+      //now we are creating request asking about 5 ether for something
     await campaign.methods
       .createRequest('A', web3.utils.toWei('5', 'ether'), accounts[1])
       .send({ from: accounts[0], gas: '1000000' });
-
+      // now we have to approve the request
     await campaign.methods.approveRequest(0).send({
       from: accounts[0],
       gas: '1000000'
     });
-
+      // now we are ready finalize the request
     await campaign.methods.finalizeRequest(0).send({
       from: accounts[0],
       gas: '1000000'
     });
-
+      // the balance on account[1] must be bigger than 104 ether
+      // we will assert that balance
+      // it is very sloppy approach right now but 
+      // we have what we have
     let balance = await web3.eth.getBalance(accounts[1]);
     balance = web3.utils.fromWei(balance, 'ether');
     balance = parseFloat(balance);
-
+    console.log(balance);
     assert(balance > 104);
   });
 });
